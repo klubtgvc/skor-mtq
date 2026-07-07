@@ -9,13 +9,14 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
     <style>
-        body { font-family: 'Calibri', 'Arial', sans-serif; background-color: #ffffff; margin: 15px; display: flex; flex-direction: column; align-items: center; }
+        /* Menggunakan satuan vw (viewport width) agar membesar/mengecil otomatis */
+        body { font-family: 'Calibri', 'Arial', sans-serif; background-color: #ffffff; margin: 1vw; display: flex; flex-direction: column; align-items: center; }
         
-        .main-title { text-align: center; font-size: 46px; font-weight: bold; color: #000; margin-top: 10px; margin-bottom: 25px; text-transform: uppercase; line-height: 1.2; border-bottom: 5px double #000; padding-bottom: 15px; width: 100%; max-width: 1800px; }
+        .main-title { text-align: center; font-size: 2.8vw; font-weight: bold; color: #000; margin-top: 0.5vw; margin-bottom: 1.5vw; text-transform: uppercase; line-height: 1.2; border-bottom: 0.4vw double #000; padding-bottom: 1vw; width: 100%; }
         
-        .board-container { display: flex; gap: 15px; width: 100%; max-width: 1800px; justify-content: center; }
-        .team-wrapper { flex: 1; border: 3px solid #000; box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
-        .team-header { text-align: center; font-size: 38px; font-weight: bold; padding: 20px 5px; border-bottom: 3px solid #000; }
+        .board-container { display: flex; gap: 1vw; width: 100%; justify-content: center; }
+        .team-wrapper { flex: 1; border: 0.2vw solid #000; box-shadow: 0 0.4vw 1vw rgba(0,0,0,0.2); overflow: hidden; }
+        .team-header { text-align: center; font-size: 2.2vw; font-weight: bold; padding: 1vw 0.5vw; border-bottom: 0.2vw solid #000; }
         
         .header-a { background-color: #ffff00; color: #000; }
         .header-b { background-color: #ff0000; color: #fff; }
@@ -28,14 +29,14 @@
         th:nth-child(3) { width: 29.33%; } 
         th:nth-child(4) { width: 29.33%; } 
         
-        th, td { border: 2px solid #000; height: 55px; padding: 0; font-weight: bold; }
-        th { background-color: #9bc2e6; font-size: 18px; padding: 12px 2px; }
-        td.col-no { background-color: #9bc2e6; font-size: 24px; }
+        th, td { border: 0.15vw solid #000; height: 3.5vw; padding: 0; font-weight: bold; }
+        th { background-color: #9bc2e6; font-size: 1.1vw; padding: 0.5vw 0; }
+        td.col-no { background-color: #9bc2e6; font-size: 1.5vw; }
         
-        .val-cell { color: #000; font-size: 38px; }
-        .total-row { background-color: #d9d9d9; height: 70px; }
-        .total-label { text-align: right; padding-right: 15px; font-size: 26px; }
-        .total-score { color: #c00000; font-size: 48px; }
+        .val-cell { color: #000; font-size: 2vw; }
+        .total-row { background-color: #d9d9d9; height: 4.5vw; }
+        .total-label { text-align: right; padding-right: 1vw; font-size: 1.6vw; }
+        .total-score { color: #c00000; font-size: 3vw; }
     </style>
 </head>
 <body>
@@ -48,7 +49,6 @@
     <div class="board-container" id="boardContainer"></div>
 
     <script>
-        // Konfigurasi Firebase yang sama persis
         const firebaseConfig = {
             apiKey: "AIzaSyAt9d4sQPzc_IoJi_U_gXSbjiZQkBmoYzc",
             authDomain: "skor-mtq.firebaseapp.com",
@@ -105,7 +105,6 @@
 
         buildTable();
 
-        // Menerima data secara Real-Time dari Firebase
         dbRef.on('value', (snapshot) => {
             const dbData = snapshot.val();
             if(dbData) {
