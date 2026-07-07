@@ -3,52 +3,74 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Layar Proyektor MTQ</title>
+    <title>Panel Operator MTQ - Real-Time</title>
     <!-- Firebase CDN -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-
+    
     <style>
-        /* Menggunakan satuan vw (viewport width) agar membesar/mengecil otomatis */
-        body { font-family: 'Calibri', 'Arial', sans-serif; background-color: #ffffff; margin: 1vw; display: flex; flex-direction: column; align-items: center; }
+        body { font-family: 'Calibri', 'Arial', sans-serif; background-color: #e9ecef; margin: 15px; display: flex; flex-direction: column; align-items: center; }
+        .dashboard { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); max-width: 1500px; width: 100%; }
+        .header-title { text-align: center; font-size: 1.8rem; font-weight: bold; color: #333; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 3px solid #ddd; }
         
-        .main-title { text-align: center; font-size: 2.8vw; font-weight: bold; color: #000; margin-top: 0.5vw; margin-bottom: 1.5vw; text-transform: uppercase; line-height: 1.2; border-bottom: 0.4vw double #000; padding-bottom: 1vw; width: 100%; }
+        .teams-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; }
+        .team-ctrl { border: 2px solid #ddd; border-radius: 8px; background: #f8f9fa; overflow: hidden; }
+        .team-ctrl h3 { margin: 0; font-size: 1.8rem; padding: 15px; text-align: center; color: #000; }
         
-        .board-container { display: flex; gap: 1vw; width: 100%; justify-content: center; }
-        .team-wrapper { flex: 1; border: 0.2vw solid #000; box-shadow: 0 0.4vw 1vw rgba(0,0,0,0.2); overflow: hidden; }
-        .team-header { text-align: center; font-size: 2.2vw; font-weight: bold; padding: 1vw 0.5vw; border-bottom: 0.2vw solid #000; }
-        
-        .header-a { background-color: #ffff00; color: #000; }
-        .header-b { background-color: #ff0000; color: #fff; }
-        .header-c { background-color: #002060; color: #fff; }
-        .header-d { background-color: #00b050; color: #fff; }
+        .hdr-a { background-color: #ffff00; border-bottom: 2px solid #ccc;}
+        .hdr-b { background-color: #ff0000; color: #fff !important; border-bottom: 2px solid #ccc;}
+        .hdr-c { background-color: #002060; color: #fff !important; border-bottom: 2px solid #ccc;}
+        .hdr-d { background-color: #00b050; color: #fff !important; border-bottom: 2px solid #ccc;}
 
-        table { width: 100%; border-collapse: collapse; text-align: center; table-layout: fixed; }
-        th:nth-child(1) { width: 12%; } 
-        th:nth-child(2) { width: 29.33%; } 
-        th:nth-child(3) { width: 29.33%; } 
-        th:nth-child(4) { width: 29.33%; } 
+        .babak-container { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; padding: 10px; }
+        .babak-col { display: flex; flex-direction: column; gap: 5px; background: #fff; border: 1px solid #ddd; padding: 5px; border-radius: 5px; }
+        .babak-title { text-align: center; font-size: 0.95rem; font-weight: bold; background: #9bc2e6; padding: 5px 0; margin-bottom: 5px; border-radius: 3px; }
+
+        .btn-row { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
+        .btn-row-full { display: grid; grid-template-columns: 1fr; gap: 5px; } 
+        .s-btn { padding: 10px 0; border: none; border-radius: 4px; color: white; font-size: 1.1rem; font-weight: bold; cursor: pointer; transition: 0.1s; }
+        .s-btn:active { transform: scale(0.92); }
+        .b-plus { background: #28a745; } 
+        .b-min { background: #dc3545; }  
+        .b-del { background: #6c757d; width: 100%; margin-top: 5px; } 
+
+        .preview-section { margin-top: 30px; border-top: 3px dashed #ccc; padding-top: 20px; }
+        .preview-title { text-align: center; font-size: 1.5rem; font-weight: bold; color: #333; margin-bottom: 15px; }
+        .preview-container { display: flex; gap: 10px; width: 100%; justify-content: center; }
+        .preview-wrapper { flex: 1; border: 2px solid #000; background: #fff; }
+        .preview-header { text-align: center; font-size: 18px; font-weight: bold; padding: 10px 5px; border-bottom: 2px solid #000; }
+        .preview-wrapper table { width: 100%; border-collapse: collapse; text-align: center; }
+        .preview-wrapper th, .preview-wrapper td { border: 1px solid #000; height: 26px; padding: 0; font-size: 14px; font-weight: bold; }
+        .preview-wrapper th { background-color: #9bc2e6; font-size: 11px; }
+        .preview-wrapper td.col-no { background-color: #9bc2e6; width: 25px; }
+        .val-cell { color: #000; }
+        .total-row { background-color: #d9d9d9; font-size: 16px; height: 35px; }
+
+        .btn-reset-all { display: block; margin: 30px auto 10px; padding: 15px 30px; font-size: 1.2rem; background: #dc3545; color: white; border: none; cursor: pointer; border-radius: 8px; font-weight: bold; }
         
-        th, td { border: 0.15vw solid #000; height: 3.5vw; padding: 0; font-weight: bold; }
-        th { background-color: #9bc2e6; font-size: 1.1vw; padding: 0.5vw 0; }
-        td.col-no { background-color: #9bc2e6; font-size: 1.5vw; }
-        
-        .val-cell { color: #000; font-size: 2vw; }
-        .total-row { background-color: #d9d9d9; height: 4.5vw; }
-        .total-label { text-align: right; padding-right: 1vw; font-size: 1.6vw; }
-        .total-score { color: #c00000; font-size: 3vw; }
+        #statusKoneksi { text-align: center; font-weight: bold; padding: 10px; margin-bottom: 10px; border-radius: 5px; }
+        .konek { background-color: #d4edda; color: #155724; }
+        .diskonek { background-color: #f8d7da; color: #721c24; }
     </style>
 </head>
 <body>
 
-    <div class="main-title">
-        LIVE PAPAN SKOR FAHMIL QUR'AN<br>
-        MTQ KE-XXX DAYAH MUTIDI 1448H/2026M
+    <div class="dashboard">
+        <div class="header-title">💻 PANEL OPERATOR (Otomatis & Real-Time)</div>
+        <div id="statusKoneksi" class="diskonek">Menghubungkan ke Server Firebase...</div>
+
+        <div class="teams-grid" id="teamsContainer"></div>
+
+        <div class="preview-section">
+            <div class="preview-title">📺 LAYAR PROYEKTOR SAAT INI :</div>
+            <div class="preview-container" id="previewContainer"></div>
+        </div>
+
+        <button class="btn-reset-all" onclick="resetAll()">🔄 Reset Seluruh Skor & Kosongkan Layar</button>
     </div>
-    
-    <div class="board-container" id="boardContainer"></div>
 
     <script>
+        // Konfigurasi Firebase dari Anda
         const firebaseConfig = {
             apiKey: "AIzaSyAt9d4sQPzc_IoJi_U_gXSbjiZQkBmoYzc",
             authDomain: "skor-mtq.firebaseapp.com",
@@ -62,57 +84,138 @@
         
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
-        const dbRef = db.ref('skorMutidi'); 
+        const dbRef = db.ref('skorMutidi');
+
+        // Status Koneksi
+        const connectedRef = firebase.database().ref(".info/connected");
+        connectedRef.on("value", (snap) => {
+            const statusEl = document.getElementById("statusKoneksi");
+            if (snap.val() === true) {
+                statusEl.textContent = "🟢 Terhubung ke Cloud Database";
+                statusEl.className = "konek";
+            } else {
+                statusEl.textContent = "🔴 Terputus dari Server (Periksa Internet)";
+                statusEl.className = "diskonek";
+            }
+        });
 
         const teams = [
-            { id: 'A', name: 'REGU A', class: 'header-a' },
-            { id: 'B', name: 'REGU B', class: 'header-b' },
-            { id: 'C', name: 'REGU C', class: 'header-c' },
-            { id: 'D', name: 'REGU D', class: 'header-d' }
+            { id: 'A', name: 'REGU A', class: 'hdr-a' },
+            { id: 'B', name: 'REGU B', class: 'hdr-b' },
+            { id: 'C', name: 'REGU C', class: 'hdr-c' },
+            { id: 'D', name: 'REGU D', class: 'hdr-d' }
         ];
-        const cols = ['p', 'l', 'r']; 
+        const babaks = [
+            { id: 'p', name: 'PEMERATAAN' },
+            { id: 'l', name: 'LEMPAR' },
+            { id: 'r', name: 'REBUTAN' }
+        ];
 
-        function buildTable() {
+        let tableData = {};
+
+        function buildControlPanel() {
             let html = '';
             teams.forEach(team => {
-                html += `<div class="team-wrapper"><div class="team-header ${team.class}">${team.name}</div><table><thead><tr><th>NO.</th><th>PEMERATAAN</th><th>LEMPAR</th><th>REBUTAN</th></tr></thead><tbody>`;
-                for (let i = 1; i <= 14; i++) {
-                    html += `<tr><td class="col-no">${i}</td>`;
-                    cols.forEach(c => { html += `<td class="val-cell" id="display-${team.id}-${i}-${c}"></td>`; });
-                    html += `</tr>`;
-                }
-                html += `<tr class="total-row"><td colspan="2" class="total-label">TOTAL:</td><td colspan="2" class="total-score" id="total-${team.id}">0</td></tr></tbody></table></div>`;
+                html += `<div class="team-ctrl"><h3 class="${team.class}">${team.name}</h3><div class="babak-container">`;
+                babaks.forEach(babak => {
+                    html += `<div class="babak-col"><div class="babak-title">${babak.name}</div>`;
+                    
+                    // Babak Pemerataan (Tanpa Minus)
+                    if (babak.id === 'p') {
+                        html += `
+                            <div class="btn-row-full"><button class="s-btn b-plus" onclick="setScore('${team.id}', '${babak.id}', 100)">100</button></div>
+                            <div class="btn-row-full"><button class="s-btn b-plus" onclick="setScore('${team.id}', '${babak.id}', 50)">50</button></div>
+                            <div class="btn-row-full"><button class="s-btn b-plus" onclick="setScore('${team.id}', '${babak.id}', 25)">25</button></div>`;
+                    } else {
+                        // Babak Lempar & Rebutan
+                        html += `
+                            <div class="btn-row"><button class="s-btn b-plus" onclick="setScore('${team.id}', '${babak.id}', 100)">100</button><button class="s-btn b-min" onclick="setScore('${team.id}', '${babak.id}', -100)">-100</button></div>
+                            <div class="btn-row"><button class="s-btn b-plus" onclick="setScore('${team.id}', '${babak.id}', 50)">50</button><button class="s-btn b-min" onclick="setScore('${team.id}', '${babak.id}', -50)">-50</button></div>
+                            <div class="btn-row"><button class="s-btn b-plus" onclick="setScore('${team.id}', '${babak.id}', 25)">25</button><button class="s-btn b-min" onclick="setScore('${team.id}', '${babak.id}', -25)">-25</button></div>`;
+                    }
+                    html += `<button class="s-btn b-del" onclick="setScore('${team.id}', '${babak.id}', '')">Hapus (Undo)</button></div>`;
+                });
+                html += `</div></div>`;
             });
-            document.getElementById('boardContainer').innerHTML = html;
+            document.getElementById('teamsContainer').innerHTML = html;
         }
 
-        function updateScreen(data, totals) {
-            document.querySelectorAll('.val-cell').forEach(c => c.innerText = '');
-            if(data) {
-                for (let key in data) {
-                    let displayId = key.replace('input', 'display');
-                    let el = document.getElementById(displayId);
-                    if (el) el.innerText = data[key];
+        function buildPreviewTable() {
+            let html = '';
+            teams.forEach(team => {
+                html += `<div class="preview-wrapper"><div class="preview-header ${team.class}">${team.name}</div><table><thead><tr><th>NO.</th><th>PEMERATAAN</th><th>LEMPAR</th><th>REBUTAN</th></tr></thead><tbody>`;
+                for (let i = 1; i <= 14; i++) {
+                    html += `<tr><td class="col-no">${i}</td>`;
+                    babaks.forEach(b => { html += `<td class="val-cell" id="preview-${team.id}-${i}-${b.id}"></td>`; });
+                    html += `</tr>`;
                 }
+                html += `<tr class="total-row"><td colspan="2">TOTAL:</td><td colspan="2" id="preview-total-${team.id}" style="color:#c00000; font-size: 20px;">0</td></tr></tbody></table></div>`;
+            });
+            document.getElementById('previewContainer').innerHTML = html;
+        }
+
+        // Ambil Data dari Firebase
+        dbRef.on('value', (snapshot) => {
+            const data = snapshot.val();
+            if (data && data.tableData) {
+                tableData = data.tableData;
+            } else {
+                tableData = {};
             }
-            if(totals) {
+            renderPreview(tableData, data ? data.totals : null);
+        });
+
+        // Set Skor & Kirim ke Firebase
+        function setScore(teamId, babakId, value) {
+            if (value === '') {
+                for (let i = 14; i >= 1; i--) {
+                    let key = `input-${teamId}-${i}-${babakId}`;
+                    if (tableData[key] !== undefined) { delete tableData[key]; break; }
+                }
+            } else {
+                let inserted = false;
+                for (let i = 1; i <= 14; i++) {
+                    let key = `input-${teamId}-${i}-${babakId}`;
+                    if (tableData[key] === undefined) { tableData[key] = value; inserted = true; break; }
+                }
+                if (!inserted) { alert(`Kolom ${babakId.toUpperCase()} untuk Regu ${teamId} sudah penuh!`); return; }
+            }
+            pushToServer();
+        }
+
+        function pushToServer() {
+            let totals = { A: 0, B: 0, C: 0, D: 0 };
+            for (let key in tableData) {
+                let val = parseInt(tableData[key]);
+                let team = key.split('-')[1];
+                if (!isNaN(val)) totals[team] += val;
+            }
+            dbRef.set({ tableData: tableData, totals: totals });
+        }
+
+        function renderPreview(data, totals) {
+            document.querySelectorAll('.val-cell').forEach(c => c.innerText = '');
+            for (let key in data) {
+                let previewKey = key.replace('input', 'preview'); 
+                let cell = document.getElementById(previewKey);
+                if (cell) cell.innerText = data[key];
+            }
+            if (totals) {
                 teams.forEach(team => {
-                    let totalEl = document.getElementById(`total-${team.id}`);
+                    let totalEl = document.getElementById(`preview-total-${team.id}`);
                     if (totalEl) totalEl.innerText = totals[team.id];
                 });
             }
         }
 
-        buildTable();
-
-        dbRef.on('value', (snapshot) => {
-            const dbData = snapshot.val();
-            if(dbData) {
-                updateScreen(dbData.tableData, dbData.totals);
-            } else {
-                updateScreen({}, { A: 0, B: 0, C: 0, D: 0 });
+        function resetAll() {
+            if(confirm('Yakin ingin mereset seluruh skor menjadi kosong?')) {
+                dbRef.set({ tableData: {}, totals: { A: 0, B: 0, C: 0, D: 0 } });
             }
-        });
+        }
+
+        buildControlPanel();
+        buildPreviewTable();
     </script>
 </body>
 </html>
