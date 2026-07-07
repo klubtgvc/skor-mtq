@@ -47,11 +47,20 @@
         .val-cell { color: #000; }
         .total-row { background-color: #d9d9d9; font-size: 16px; height: 35px; }
 
-        .btn-reset-all { display: block; margin: 30px auto 10px; padding: 15px 30px; font-size: 1.2rem; background: #dc3545; color: white; border: none; cursor: pointer; border-radius: 8px; font-weight: bold; width: 100%; }
+        .btn-reset-all { display: block; margin: 20px auto 10px; padding: 15px 30px; font-size: 1.2rem; background: #dc3545; color: white; border: none; cursor: pointer; border-radius: 8px; font-weight: bold; width: 100%; }
         
         #statusKoneksi { text-align: center; font-weight: bold; padding: 10px; margin-bottom: 10px; border-radius: 5px; }
         .konek { background-color: #d4edda; color: #155724; }
         .diskonek { background-color: #f8d7da; color: #721c24; }
+
+        /* GAYA UNTUK FITUR SIMPAN & MUAT */
+        .session-manager { margin-top: 25px; padding: 15px; background: #e3f2fd; border: 2px solid #90caf9; border-radius: 8px; display: flex; flex-direction: column; align-items: center; gap: 15px; }
+        .session-title { font-size: 1.3rem; font-weight: bold; color: #0d47a1; margin: 0; }
+        .session-controls { display: flex; gap: 10px; width: 100%; justify-content: center; flex-wrap: wrap; }
+        .btn-save { padding: 12px 20px; font-size: 1.1rem; background: #007bff; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; flex: 1; min-width: 200px; }
+        .session-select { padding: 10px; font-size: 1.1rem; border-radius: 6px; border: 1px solid #ccc; flex: 2; min-width: 200px; }
+        .btn-load { padding: 12px 20px; font-size: 1.1rem; background: #28a745; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; flex: 1; min-width: 150px; }
+        .btn-save:active, .btn-load:active { transform: scale(0.95); }
 
         /* KODE RESPONSIF UNTUK HP / IPHONE */
         @media (max-width: 900px) {
@@ -73,6 +82,7 @@
             .s-btn { padding: 10px 0; font-size: 0.95rem; } 
             .preview-container { flex-direction: column; }
             .preview-wrapper { width: 100%; margin-bottom: 10px; }
+            .session-controls { flex-direction: column; }
         }
     </style>
 </head>
@@ -84,12 +94,25 @@
 
         <div class="teams-grid" id="teamsContainer"></div>
 
+        <!-- FITUR PENYIMPANAN SESI (BARU) -->
+        <div class="session-manager">
+            <h4 class="session-title">📂 Manajemen Data Pertandingan</h4>
+            <div class="session-controls">
+                <button class="btn-save" onclick="simpanSesiPertandingan()">💾 Simpan Hasil Saat Ini</button>
+                <select id="daftarSesi" class="session-select">
+                    <option value="">-- Pilih Data Lama Untuk Ditampilkan --</option>
+                </select>
+                <button class="btn-load" onclick="muatSesiPertandingan()">Tampilkan ke Layar 🚀</button>
+            </div>
+        </div>
+
+        <button class="btn-reset-all" onclick="resetAll()">🔄 Reset Seluruh Skor & Kosongkan Layar</button>
+
         <div class="preview-section">
             <div class="preview-title">📺 LAYAR PROYEKTOR SAAT INI :</div>
             <div class="preview-container" id="previewContainer"></div>
         </div>
 
-        <button class="btn-reset-all" onclick="resetAll()">🔄 Reset Seluruh Skor & Kosongkan Layar</button>
     </div>
 
     <script>
@@ -107,6 +130,7 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
         const dbRef = db.ref('skorMutidi');
+        const dbHistory = db.ref('skorMutidi_Riwayat'); // Database khusus untuk menyimpan riwayat
 
         const connectedRef = firebase.database().ref(".info/connected");
         connectedRef.on("value", (snap) => {
@@ -133,6 +157,7 @@
         ];
 
         let tableData = {};
+        let currentTotals = { A: 0, B: 0, C: 0, D: 0 };
 
         function buildControlPanel() {
             let html = '';
@@ -140,7 +165,6 @@
                 html += `<div class="team-ctrl"><h3 class="${team.class}">${team.name}</h3><div class="babak-container">`;
                 babaks.forEach(babak => {
                     html += `<div class="babak-col"><div class="babak-title">${babak.name}</div>`;
-                    
                     if (babak.id === 'p') {
                         html += `
                             <div class="btn-row-full"><button class="s-btn b-plus" onclick="setScore('${team.id}', '${babak.id}', 100)">100</button></div>
@@ -177,10 +201,26 @@
             const data = snapshot.val();
             if (data && data.tableData) {
                 tableData = data.tableData;
+                currentTotals = data.totals || { A: 0, B: 0, C: 0, D: 0 };
             } else {
                 tableData = {};
+                currentTotals = { A: 0, B: 0, C: 0, D: 0 };
             }
-            renderPreview(tableData, data ? data.totals : null);
+            renderPreview(tableData, currentTotals);
+        });
+
+        // Menarik daftar riwayat yang pernah disimpan untuk dimasukkan ke Dropdown
+        dbHistory.on('value', (snapshot) => {
+            const dropdown = document.getElementById('daftarSesi');
+            dropdown.innerHTML = '<option value="">-- Pilih Data Lama Untuk Ditampilkan --</option>';
+            if (snapshot.exists()) {
+                snapshot.forEach((child) => {
+                    let opt = document.createElement('option');
+                    opt.value = child.key;
+                    opt.text = child.key; // Nama Sesi
+                    dropdown.appendChild(opt);
+                });
+            }
         });
 
         function setScore(teamId, babakId, value) {
@@ -225,8 +265,56 @@
             }
         }
 
+        // =====================================
+        // FUNGSI BARU: SIMPAN & MUAT SESI
+        // =====================================
+        function simpanSesiPertandingan() {
+            // Minta operator mengetik nama sesinya (Misal: Penyisihan 1)
+            let namaSesi = prompt("Silakan ketik nama perlombaan/sesi ini (Contoh: Babak Penyisihan 1):");
+            
+            if (namaSesi != null && namaSesi.trim() !== "") {
+                // Bersihkan karakter aneh agar bisa jadi ID di database
+                let idSesi = namaSesi.replace(/[.#$[\]]/g, ""); 
+                
+                // Simpan ke brankas riwayat
+                dbHistory.child(idSesi).set({
+                    tableData: tableData,
+                    totals: currentTotals,
+                    waktuSimpan: new Date().toLocaleString()
+                }).then(() => {
+                    alert('✅ Data "' + idSesi + '" berhasil disimpan ke memori!');
+                }).catch(err => {
+                    alert('Gagal menyimpan: ' + err.message);
+                });
+            }
+        }
+
+        function muatSesiPertandingan() {
+            let idSesi = document.getElementById('daftarSesi').value;
+            if (idSesi === "") {
+                alert("Silakan pilih dulu nama sesi yang ingin ditampilkan dari kotak di sebelah kiri.");
+                return;
+            }
+            
+            if (confirm('Yakin ingin menampilkan data "' + idSesi + '" ke layar proyektor sekarang? \n\n(Ini akan menimpa angka yang sedang tayang saat ini)')) {
+                // Ambil data dari brankas, lalu tembak ke database utama layar
+                dbHistory.child(idSesi).once('value').then(snap => {
+                    if (snap.exists()) {
+                        let dataLama = snap.val();
+                        dbRef.set({
+                            tableData: dataLama.tableData || {},
+                            totals: dataLama.totals || { A: 0, B: 0, C: 0, D: 0 }
+                        }).then(() => {
+                            alert('Tampilan sukses diganti ke "' + idSesi + '"!');
+                        });
+                    }
+                });
+            }
+        }
+        // =====================================
+
         function resetAll() {
-            if(confirm('Yakin ingin mereset seluruh skor menjadi kosong?')) {
+            if(confirm('Yakin ingin mereset seluruh skor menjadi KOSONG? \n\nPastikan Anda sudah menyimpan sesi ini jika masih dibutuhkan.')) {
                 dbRef.set({ tableData: {}, totals: { A: 0, B: 0, C: 0, D: 0 } });
             }
         }
@@ -234,32 +322,19 @@
         buildControlPanel();
         buildPreviewTable();
 
-        // ==========================================
-        // FITUR WAKE LOCK (MENCEGAH LAYAR MATI)
-        // ==========================================
+        // Fitur Wake Lock
         let wakeLock = null;
-
         const requestWakeLock = async () => {
             try {
                 if ('wakeLock' in navigator) {
                     wakeLock = await navigator.wakeLock.request('screen');
-                    console.log('Wake Lock aktif: Layar Panel Kontrol dipertahankan menyala.');
                 }
-            } catch (err) {
-                console.error(`Wake Lock error: ${err.name}, ${err.message}`);
-            }
+            } catch (err) {}
         };
-
-        // Meminta sistem menahan layar saat web dimuat
         requestWakeLock();
-
-        // Mengaktifkan kembali Wake Lock apabila pengguna sempat berpindah tab/aplikasi
         document.addEventListener('visibilitychange', async () => {
-            if (wakeLock !== null && document.visibilityState === 'visible') {
-                requestWakeLock();
-            }
+            if (wakeLock !== null && document.visibilityState === 'visible') requestWakeLock();
         });
-        // ==========================================
     </script>
 </body>
 </html>
