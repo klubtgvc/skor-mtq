@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Layar Proyektor MTQ</title>
+    <!-- Firebase CDN -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+    <style>
+        body { font-family: 'Calibri', 'Arial', sans-serif; background-color: #ffffff; margin: 15px; display: flex; flex-direction: column; align-items: center; }
+        
+        .main-title { text-align: center; font-size: 46px; font-weight: bold; color: #000; margin-top: 10px; margin-bottom: 25px; text-transform: uppercase; line-height: 1.2; border-bottom: 5px double #000; padding-bottom: 15px; width: 100%; max-width: 1800px; }
+        
+        .board-container { display: flex; gap: 15px; width: 100%; max-width: 1800px; justify-content: center; }
+        .team-wrapper { flex: 1; border: 3px solid #000; box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
+        .team-header { text-align: center; font-size: 38px; font-weight: bold; padding: 20px 5px; border-bottom: 3px solid #000; }
+        
+        .header-a { background-color: #ffff00; color: #000; }
+        .header-b { background-color: #ff0000; color: #fff; }
+        .header-c { background-color: #002060; color: #fff; }
+        .header-d { background-color: #00b050; color: #fff; }
+
+        table { width: 100%; border-collapse: collapse; text-align: center; table-layout: fixed; }
+        th:nth-child(1) { width: 12%; } 
+        th:nth-child(2) { width: 29.33%; } 
+        th:nth-child(3) { width: 29.33%; } 
+        th:nth-child(4) { width: 29.33%; } 
+        
+        th, td { border: 2px solid #000; height: 55px; padding: 0; font-weight: bold; }
+        th { background-color: #9bc2e6; font-size: 18px; padding: 12px 2px; }
+        td.col-no { background-color: #9bc2e6; font-size: 24px; }
+        
+        .val-cell { color: #000; font-size: 38px; }
+        .total-row { background-color: #d9d9d9; height: 70px; }
+        .total-label { text-align: right; padding-right: 15px; font-size: 26px; }
+        .total-score { color: #c00000; font-size: 48px; }
+    </style>
+</head>
+<body>
+
+    <div class="main-title">
+        LIVE PAPAN SKOR FAHMIL QUR'AN<br>
+        MTQ KE-XXX DAYAH MUTIDI 1448H/2026M
+    </div>
+    
+    <div class="board-container" id="boardContainer"></div>
+
+    <script>
+        // Konfigurasi Firebase yang sama persis
+        const firebaseConfig = {
+            apiKey: "AIzaSyAt9d4sQPzc_IoJi_U_gXSbjiZQkBmoYzc",
+            authDomain: "skor-mtq.firebaseapp.com",
+            databaseURL: "https://skor-mtq-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "skor-mtq",
+            storageBucket: "skor-mtq.firebasestorage.app",
+            messagingSenderId: "2896206863",
+            appId: "1:2896206863:web:638b010919af67ac45977a",
+            measurementId: "G-S8CCS4HWQS"
+        };
+        
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+        const dbRef = db.ref('skorMutidi'); 
+
+        const teams = [
+            { id: 'A', name: 'REGU A', class: 'header-a' },
+            { id: 'B', name: 'REGU B', class: 'header-b' },
+            { id: 'C', name: 'REGU C', class: 'header-c' },
+            { id: 'D', name: 'REGU D', class: 'header-d' }
+        ];
+        const cols = ['p', 'l', 'r']; 
+
+        function buildTable() {
+            let html = '';
+            teams.forEach(team => {
+                html += `<div class="team-wrapper"><div class="team-header ${team.class}">${team.name}</div><table><thead><tr><th>NO.</th><th>PEMERATAAN</th><th>LEMPAR</th><th>REBUTAN</th></tr></thead><tbody>`;
+                for (let i = 1; i <= 14; i++) {
+                    html += `<tr><td class="col-no">${i}</td>`;
+                    cols.forEach(c => { html += `<td class="val-cell" id="display-${team.id}-${i}-${c}"></td>`; });
+                    html += `</tr>`;
+                }
+                html += `<tr class="total-row"><td colspan="2" class="total-label">TOTAL:</td><td colspan="2" class="total-score" id="total-${team.id}">0</td></tr></tbody></table></div>`;
+            });
+            document.getElementById('boardContainer').innerHTML = html;
+        }
+
+        function updateScreen(data, totals) {
+            document.querySelectorAll('.val-cell').forEach(c => c.innerText = '');
+            if(data) {
+                for (let key in data) {
+                    let displayId = key.replace('input', 'display');
+                    let el = document.getElementById(displayId);
+                    if (el) el.innerText = data[key];
+                }
+            }
+            if(totals) {
+                teams.forEach(team => {
+                    let totalEl = document.getElementById(`total-${team.id}`);
+                    if (totalEl) totalEl.innerText = totals[team.id];
+                });
+            }
+        }
+
+        buildTable();
+
+        // Menerima data secara Real-Time dari Firebase
+        dbRef.on('value', (snapshot) => {
+            const dbData = snapshot.val();
+            if(dbData) {
+                updateScreen(dbData.tableData, dbData.totals);
+            } else {
+                updateScreen({}, { A: 0, B: 0, C: 0, D: 0 });
+            }
+        });
+    </script>
+</body>
+</html>
