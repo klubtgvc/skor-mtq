@@ -9,9 +9,7 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     
     <style>
-        /* Memastikan padding tidak merusak lebar elemen */
         * { box-sizing: border-box; }
-
         body { font-family: 'Calibri', 'Arial', sans-serif; background-color: #e9ecef; margin: 15px; display: flex; flex-direction: column; align-items: center; }
         .dashboard { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); max-width: 1500px; width: 100%; }
         .header-title { text-align: center; font-size: 1.8rem; font-weight: bold; color: #333; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 3px solid #ddd; }
@@ -55,7 +53,7 @@
         .konek { background-color: #d4edda; color: #155724; }
         .diskonek { background-color: #f8d7da; color: #721c24; }
 
-        /* ====== KODE RESPONSIF UNTUK HP / IPHONE ====== */
+        /* KODE RESPONSIF UNTUK HP / IPHONE */
         @media (max-width: 900px) {
             .teams-grid { grid-template-columns: repeat(2, 1fr); } 
             .preview-container { flex-wrap: wrap; }
@@ -66,22 +64,13 @@
             body { margin: 5px; }
             .dashboard { padding: 8px; }
             .header-title { font-size: 1.2rem; margin-bottom: 10px; padding-bottom: 5px; }
-            
-            /* Menyusun regu ke bawah */
             .teams-grid { grid-template-columns: 1fr; gap: 10px; } 
             .team-ctrl h3 { font-size: 1.3rem; padding: 8px; }
-            
-            /* Merapatkan kolom babak agar 3 kolom muat berdampingan di HP */
             .babak-container { gap: 3px; padding: 5px; }
             .babak-col { padding: 4px; gap: 3px; }
             .babak-title { font-size: 0.75rem; padding: 4px 0; margin-bottom: 2px; }
-            
-            /* Mengecilkan jarak antar tombol plus/minus */
             .btn-row, .btn-row-full { gap: 3px; }
-            
-            /* Menyesuaikan ukuran font & padding tombol agar tidak melebar */
             .s-btn { padding: 10px 0; font-size: 0.95rem; } 
-            
             .preview-container { flex-direction: column; }
             .preview-wrapper { width: 100%; margin-bottom: 10px; }
         }
@@ -244,6 +233,33 @@
 
         buildControlPanel();
         buildPreviewTable();
+
+        // ==========================================
+        // FITUR WAKE LOCK (MENCEGAH LAYAR MATI)
+        // ==========================================
+        let wakeLock = null;
+
+        const requestWakeLock = async () => {
+            try {
+                if ('wakeLock' in navigator) {
+                    wakeLock = await navigator.wakeLock.request('screen');
+                    console.log('Wake Lock aktif: Layar Panel Kontrol dipertahankan menyala.');
+                }
+            } catch (err) {
+                console.error(`Wake Lock error: ${err.name}, ${err.message}`);
+            }
+        };
+
+        // Meminta sistem menahan layar saat web dimuat
+        requestWakeLock();
+
+        // Mengaktifkan kembali Wake Lock apabila pengguna sempat berpindah tab/aplikasi
+        document.addEventListener('visibilitychange', async () => {
+            if (wakeLock !== null && document.visibilityState === 'visible') {
+                requestWakeLock();
+            }
+        });
+        // ==========================================
     </script>
 </body>
 </html>
