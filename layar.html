@@ -3,13 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Meta tag khusus agar jika di-Add to Home Screen tampil fullscreen -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
     <title>Layar Proyektor MTQ</title>
+    
     <!-- Firebase CDN -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
     <style>
-        /* Menggunakan satuan vw (viewport width) agar membesar/mengecil otomatis */
         body { font-family: 'Calibri', 'Arial', sans-serif; background-color: #ffffff; margin: 1vw; display: flex; flex-direction: column; align-items: center; }
         
         .main-title { text-align: center; font-size: 2.8vw; font-weight: bold; color: #000; margin-top: 0.5vw; margin-bottom: 1.5vw; text-transform: uppercase; line-height: 1.2; border-bottom: 0.4vw double #000; padding-bottom: 1vw; width: 100%; }
@@ -37,6 +40,24 @@
         .total-row { background-color: #d9d9d9; height: 4.5vw; }
         .total-label { text-align: right; padding-right: 1vw; font-size: 1.6vw; }
         .total-score { color: #c00000; font-size: 3vw; }
+
+        /* Gaya untuk Tombol Fullscreen yang Melayang */
+        #fsBtn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 10px 15px;
+            background: rgba(0, 0, 0, 0.6);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            z-index: 1000;
+            transition: 0.3s;
+        }
+        #fsBtn:hover { background: rgba(0, 0, 0, 0.9); }
     </style>
 </head>
 <body>
@@ -47,6 +68,9 @@
     </div>
     
     <div class="board-container" id="boardContainer"></div>
+
+    <!-- Tombol Fullscreen -->
+    <button id="fsBtn" onclick="toggleFullScreen()">🔲 Fullscreen</button>
 
     <script>
         const firebaseConfig = {
@@ -113,6 +137,19 @@
                 updateScreen({}, { A: 0, B: 0, C: 0, D: 0 });
             }
         });
+
+        // Fungsi Logika Fullscreen
+        function toggleFullScreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => {
+                    alert(`Gagal membuka mode fullscreen: ${err.message}`);
+                });
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                }
+            }
+        }
     </script>
 </body>
 </html>
