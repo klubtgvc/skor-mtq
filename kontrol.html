@@ -10,7 +10,7 @@
     
     <style>
         body { font-family: 'Calibri', 'Arial', sans-serif; background-color: #e9ecef; margin: 15px; display: flex; flex-direction: column; align-items: center; }
-        .dashboard { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); max-width: 1500px; width: 100%; }
+        .dashboard { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); max-width: 1500px; width: 100%; box-sizing: border-box; }
         .header-title { text-align: center; font-size: 1.8rem; font-weight: bold; color: #333; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 3px solid #ddd; }
         
         .teams-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; }
@@ -46,11 +46,29 @@
         .val-cell { color: #000; }
         .total-row { background-color: #d9d9d9; font-size: 16px; height: 35px; }
 
-        .btn-reset-all { display: block; margin: 30px auto 10px; padding: 15px 30px; font-size: 1.2rem; background: #dc3545; color: white; border: none; cursor: pointer; border-radius: 8px; font-weight: bold; }
+        .btn-reset-all { display: block; margin: 30px auto 10px; padding: 15px 30px; font-size: 1.2rem; background: #dc3545; color: white; border: none; cursor: pointer; border-radius: 8px; font-weight: bold; width: 100%; }
         
         #statusKoneksi { text-align: center; font-weight: bold; padding: 10px; margin-bottom: 10px; border-radius: 5px; }
         .konek { background-color: #d4edda; color: #155724; }
         .diskonek { background-color: #f8d7da; color: #721c24; }
+
+        /* ====== KODE RESPONSIF UNTUK HP ====== */
+        @media (max-width: 900px) {
+            .teams-grid { grid-template-columns: repeat(2, 1fr); } /* Di tablet jadi 2 atas, 2 bawah */
+            .preview-container { flex-wrap: wrap; }
+            .preview-wrapper { min-width: 45%; }
+        }
+
+        @media (max-width: 600px) {
+            body { margin: 5px; }
+            .dashboard { padding: 10px; }
+            .header-title { font-size: 1.3rem; }
+            .teams-grid { grid-template-columns: 1fr; } /* Di HP berbaris 1 ke bawah */
+            .team-ctrl h3 { font-size: 1.5rem; padding: 10px; }
+            .s-btn { padding: 15px 0; font-size: 1.2rem; } /* Tombol diperbesar agar mudah dipencet jempol */
+            .preview-container { flex-direction: column; }
+            .preview-wrapper { width: 100%; }
+        }
     </style>
 </head>
 <body>
@@ -120,14 +138,12 @@
                 babaks.forEach(babak => {
                     html += `<div class="babak-col"><div class="babak-title">${babak.name}</div>`;
                     
-                    // Babak Pemerataan (Tanpa Minus)
                     if (babak.id === 'p') {
                         html += `
                             <div class="btn-row-full"><button class="s-btn b-plus" onclick="setScore('${team.id}', '${babak.id}', 100)">100</button></div>
                             <div class="btn-row-full"><button class="s-btn b-plus" onclick="setScore('${team.id}', '${babak.id}', 50)">50</button></div>
                             <div class="btn-row-full"><button class="s-btn b-plus" onclick="setScore('${team.id}', '${babak.id}', 25)">25</button></div>`;
                     } else {
-                        // Babak Lempar & Rebutan
                         html += `
                             <div class="btn-row"><button class="s-btn b-plus" onclick="setScore('${team.id}', '${babak.id}', 100)">100</button><button class="s-btn b-min" onclick="setScore('${team.id}', '${babak.id}', -100)">-100</button></div>
                             <div class="btn-row"><button class="s-btn b-plus" onclick="setScore('${team.id}', '${babak.id}', 50)">50</button><button class="s-btn b-min" onclick="setScore('${team.id}', '${babak.id}', -50)">-50</button></div>
@@ -154,7 +170,6 @@
             document.getElementById('previewContainer').innerHTML = html;
         }
 
-        // Ambil Data dari Firebase
         dbRef.on('value', (snapshot) => {
             const data = snapshot.val();
             if (data && data.tableData) {
@@ -165,7 +180,6 @@
             renderPreview(tableData, data ? data.totals : null);
         });
 
-        // Set Skor & Kirim ke Firebase
         function setScore(teamId, babakId, value) {
             if (value === '') {
                 for (let i = 14; i >= 1; i--) {
