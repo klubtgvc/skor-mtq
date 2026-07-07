@@ -12,10 +12,8 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
     <style>
-        /* Margin diperkecil agar ruang tabel lebih lega */
         body { font-family: 'Calibri', 'Arial', sans-serif; background-color: #ffffff; margin: 0.5vw 1vw; display: flex; flex-direction: column; align-items: center; }
         
-        /* Judul dibuat sedikit lebih rapat */
         .main-title { text-align: center; font-size: 2.4vw; font-weight: bold; color: #000; margin-top: 0; margin-bottom: 1vw; text-transform: uppercase; line-height: 1.1; border-bottom: 0.3vw double #000; padding-bottom: 0.5vw; width: 100%; }
         
         .board-container { display: flex; gap: 0.8vw; width: 100%; justify-content: center; }
@@ -33,18 +31,15 @@
         th:nth-child(3) { width: 29.33%; } 
         th:nth-child(4) { width: 29.33%; } 
         
-        /* TINGGI BARIS DIPERKECIL (dari 3.5vw menjadi 2.6vw) */
         th, td { border: 0.15vw solid #000; height: 2.6vw; padding: 0; font-weight: bold; }
         th { background-color: #9bc2e6; font-size: 1vw; padding: 0.3vw 0; }
         td.col-no { background-color: #9bc2e6; font-size: 1.3vw; }
         
-        /* Ukuran angka disesuaikan agar pas dengan baris yang mengecil */
         .val-cell { color: #000; font-size: 1.8vw; }
         .total-row { background-color: #d9d9d9; height: 3.5vw; }
         .total-label { text-align: right; padding-right: 1vw; font-size: 1.4vw; }
         .total-score { color: #c00000; font-size: 2.6vw; }
 
-        /* Tombol Fullscreen */
         #fsBtn {
             position: fixed;
             bottom: 10px;
@@ -151,6 +146,32 @@
                 }
             }
         }
+
+        // ==========================================
+        // FITUR WAKE LOCK (MENCEGAH LAYAR MATI)
+        // ==========================================
+        let wakeLock = null;
+
+        const requestWakeLock = async () => {
+            try {
+                // Meminta izin menahan layar agar tetap menyala
+                wakeLock = await navigator.wakeLock.request('screen');
+                console.log('Layar dipertahankan menyala (Wake Lock aktif)');
+            } catch (err) {
+                console.error(`Wake Lock error: ${err.name}, ${err.message}`);
+            }
+        };
+
+        // Jalankan saat halaman pertama kali dibuka
+        requestWakeLock();
+
+        // Jika Anda meminimalkan browser lalu membukanya lagi, minta ulang Wake Lock-nya
+        document.addEventListener('visibilitychange', async () => {
+            if (wakeLock !== null && document.visibilityState === 'visible') {
+                requestWakeLock();
+            }
+        });
+        // ==========================================
     </script>
 </body>
 </html>
