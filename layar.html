@@ -3,7 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- Meta tag khusus agar jika di-Add to Home Screen tampil fullscreen -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
     <title>Layar Proyektor MTQ</title>
@@ -13,13 +12,15 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
     <style>
-        body { font-family: 'Calibri', 'Arial', sans-serif; background-color: #ffffff; margin: 1vw; display: flex; flex-direction: column; align-items: center; }
+        /* Margin diperkecil agar ruang tabel lebih lega */
+        body { font-family: 'Calibri', 'Arial', sans-serif; background-color: #ffffff; margin: 0.5vw 1vw; display: flex; flex-direction: column; align-items: center; }
         
-        .main-title { text-align: center; font-size: 2.8vw; font-weight: bold; color: #000; margin-top: 0.5vw; margin-bottom: 1.5vw; text-transform: uppercase; line-height: 1.2; border-bottom: 0.4vw double #000; padding-bottom: 1vw; width: 100%; }
+        /* Judul dibuat sedikit lebih rapat */
+        .main-title { text-align: center; font-size: 2.4vw; font-weight: bold; color: #000; margin-top: 0; margin-bottom: 1vw; text-transform: uppercase; line-height: 1.1; border-bottom: 0.3vw double #000; padding-bottom: 0.5vw; width: 100%; }
         
-        .board-container { display: flex; gap: 1vw; width: 100%; justify-content: center; }
+        .board-container { display: flex; gap: 0.8vw; width: 100%; justify-content: center; }
         .team-wrapper { flex: 1; border: 0.2vw solid #000; box-shadow: 0 0.4vw 1vw rgba(0,0,0,0.2); overflow: hidden; }
-        .team-header { text-align: center; font-size: 2.2vw; font-weight: bold; padding: 1vw 0.5vw; border-bottom: 0.2vw solid #000; }
+        .team-header { text-align: center; font-size: 2vw; font-weight: bold; padding: 0.6vw 0.5vw; border-bottom: 0.2vw solid #000; }
         
         .header-a { background-color: #ffff00; color: #000; }
         .header-b { background-color: #ff0000; color: #fff; }
@@ -32,32 +33,34 @@
         th:nth-child(3) { width: 29.33%; } 
         th:nth-child(4) { width: 29.33%; } 
         
-        th, td { border: 0.15vw solid #000; height: 3.5vw; padding: 0; font-weight: bold; }
-        th { background-color: #9bc2e6; font-size: 1.1vw; padding: 0.5vw 0; }
-        td.col-no { background-color: #9bc2e6; font-size: 1.5vw; }
+        /* TINGGI BARIS DIPERKECIL (dari 3.5vw menjadi 2.6vw) */
+        th, td { border: 0.15vw solid #000; height: 2.6vw; padding: 0; font-weight: bold; }
+        th { background-color: #9bc2e6; font-size: 1vw; padding: 0.3vw 0; }
+        td.col-no { background-color: #9bc2e6; font-size: 1.3vw; }
         
-        .val-cell { color: #000; font-size: 2vw; }
-        .total-row { background-color: #d9d9d9; height: 4.5vw; }
-        .total-label { text-align: right; padding-right: 1vw; font-size: 1.6vw; }
-        .total-score { color: #c00000; font-size: 3vw; }
+        /* Ukuran angka disesuaikan agar pas dengan baris yang mengecil */
+        .val-cell { color: #000; font-size: 1.8vw; }
+        .total-row { background-color: #d9d9d9; height: 3.5vw; }
+        .total-label { text-align: right; padding-right: 1vw; font-size: 1.4vw; }
+        .total-score { color: #c00000; font-size: 2.6vw; }
 
-        /* Gaya untuk Tombol Fullscreen yang Melayang */
+        /* Tombol Fullscreen */
         #fsBtn {
             position: fixed;
-            bottom: 20px;
-            right: 20px;
-            padding: 10px 15px;
-            background: rgba(0, 0, 0, 0.6);
+            bottom: 10px;
+            right: 10px;
+            padding: 8px 12px;
+            background: rgba(0, 0, 0, 0.4);
             color: white;
             border: none;
-            border-radius: 8px;
+            border-radius: 6px;
             cursor: pointer;
-            font-size: 16px;
+            font-size: 14px;
             font-weight: bold;
             z-index: 1000;
             transition: 0.3s;
         }
-        #fsBtn:hover { background: rgba(0, 0, 0, 0.9); }
+        #fsBtn:hover { background: rgba(0, 0, 0, 0.8); }
     </style>
 </head>
 <body>
@@ -69,7 +72,6 @@
     
     <div class="board-container" id="boardContainer"></div>
 
-    <!-- Tombol Fullscreen -->
     <button id="fsBtn" onclick="toggleFullScreen()">🔲 Fullscreen</button>
 
     <script>
@@ -138,7 +140,6 @@
             }
         });
 
-        // Fungsi Logika Fullscreen
         function toggleFullScreen() {
             if (!document.fullscreenElement) {
                 document.documentElement.requestFullscreen().catch(err => {
